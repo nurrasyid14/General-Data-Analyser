@@ -54,19 +54,19 @@ if df is not None:
         if st.button("Apply Missing Value Handling"):
             st.session_state.df = cleaner.handle_missing_values(strategy=strategy, fill_value=fill_value)
             st.success("✅ Missing values handled!")
-            st.experimental_rerun()
+            st.rerun()
 
         if st.button("Remove Duplicates"):
             st.session_state.df = cleaner.remove_duplicates()
             st.success("✅ Duplicates removed!")
-            st.experimental_rerun()
+            st.rerun()
 
         st.subheader("Encode Categorical Features")
         encoding = st.selectbox("Encoding Method", ["onehot", "label"])
         if st.button("Apply Encoding"):
             st.session_state.df = cleaner.encode_categorical(method=encoding)
             st.success("✅ Encoding applied!")
-            st.experimental_rerun()
+            st.rerun()
 
         st.subheader("Detect Outliers")
         method = st.selectbox("Method", ["zscore", "iqr"])
