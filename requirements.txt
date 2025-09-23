@@ -10,5 +10,3 @@ plotly
 plotly-express
 openpyxl
 xlrd
-pandas-profiling
-streamlit-pandas-profiling

@@ -11,12 +11,12 @@ from govdata_analyser.visualiser import Visualizer
 # Streamlit App Config
 # -----------------------
 st.set_page_config(page_title="AST : Government Data Analysis", layout="wide")
-st.title("📊 AST : Government Data Analysis")
+st.title("AST : Government Data Analysis")
 
 # -----------------------
 # File Upload
 # -----------------------
-uploaded_file = st.file_uploader("📂 Upload CSV dataset", type="csv")
+uploaded_file = st.file_uploader("Upload CSV dataset", type="csv")
 
 # Persist data
 if "df" not in st.session_state:
@@ -33,14 +33,14 @@ df = st.session_state.df
 # -----------------------
 if df is not None:
     tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        ["🧹 Data & Cleaning", "📊 EDA", "🔗 Clustering", "📈 Regression / Classification", "🎨 Visualization"]
+        ["Data & Cleaning", "EDA", "Clustering", "Regression / Classification", "Visualization"]
     )
 
     # -----------------------
     # Tab 1: Data & Cleaning
     # -----------------------
     with tab1:
-        st.header("🧹 Data & Cleaning")
+        st.header("Data & Cleaning")
         st.dataframe(df.head())
 
         cleaner = Cleaner(df)
@@ -54,19 +54,19 @@ if df is not None:
         if st.button("Apply Missing Value Handling"):
             st.session_state.df = cleaner.handle_missing_values(strategy=strategy, fill_value=fill_value)
             st.success("✅ Missing values handled!")
-            st.experimental_rerun()
+            st.rerun()
 
         if st.button("Remove Duplicates"):
             st.session_state.df = cleaner.remove_duplicates()
             st.success("✅ Duplicates removed!")
-            st.experimental_rerun()
+            st.rerun()
 
         st.subheader("Encode Categorical Features")
         encoding = st.selectbox("Encoding Method", ["onehot", "label"])
         if st.button("Apply Encoding"):
             st.session_state.df = cleaner.encode_categorical(method=encoding)
             st.success("✅ Encoding applied!")
-            st.experimental_rerun()
+            st.rerun()
 
         st.subheader("Detect Outliers")
         method = st.selectbox("Method", ["zscore", "iqr"])
@@ -78,7 +78,7 @@ if df is not None:
     # Tab 2: EDA
     # -----------------------
     with tab2:
-        st.header("📊 Exploratory Data Analysis (EDA)")
+        st.header("Exploratory Data Analysis (EDA)")
         eda = EDA(df)
 
         # Summary statistics
@@ -116,7 +116,7 @@ if df is not None:
     # Tab 3: Clustering
     # -----------------------
     with tab3:
-        st.header("🔗 Clustering")
+        st.header("Clustering")
         num_df = df.select_dtypes(include="number").dropna()
         if num_df.shape[1] < 2:
             st.warning("⚠️ Need at least 2 numeric columns for clustering.")
@@ -159,7 +159,7 @@ if df is not None:
     # Tab 4: Regression / Classification
     # -----------------------
     with tab4:
-        st.header("📈 Regression / Classification")
+        st.header("Regression / Classification")
         reg = Regression()
         evalr = Evaluator(df)
 
@@ -201,7 +201,7 @@ if df is not None:
     # Tab 5: Visualization
     # -----------------------
     with tab5:
-        st.header("🎨 Visualization (PCA & t-SNE)")
+        st.header("Visualization (PCA & t-SNE)")
         vis = Visualizer()
         num_df = df.select_dtypes(include="number").dropna()
 
@@ -218,4 +218,3 @@ if df is not None:
 
 else:
     st.warning("⚠️ Please upload a CSV file to begin.")
-    raise ValueError("task_type must be either 'regression' or 'classification'")
