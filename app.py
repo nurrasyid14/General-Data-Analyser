@@ -57,38 +57,40 @@ if uploaded_files:
                 visualiser.plot_tsne(df)
 
         # --- Tab 3: Clustering ---
+        # --- Tab 3: Clustering ---
         with tab3:
             st.header(f"Clustering ({dataset_name})")
             algo = st.selectbox("Choose clustering algorithm", ["KMeans", "DBSCAN", "Agglomerative"])
-            clustering = Clustering(df)
+            clustering = Clustering(df.select_dtypes(include=["number"]))  # 
 
             if algo == "KMeans":
                 n_clusters = st.slider("Number of clusters", 2, 10, 3)
-                model, labels = clustering.kmeans(n_clusters=n_clusters)
+                labels, model = clustering.kmeans_clustering(X=clustering.data, n_clusters=n_clusters)
                 evaluator = Evaluator(df)
-                metrics = evaluator.evaluate_clustering(df, labels)
+                metrics = evaluator.evaluate_clustering(clustering.data, labels)
                 st.write("### Evaluation Metrics", metrics)
-                visualiser.plot_clusters(df, labels, centers=model.cluster_centers_)
-                visualiser.silhouette_plot(df, labels)
+                visualiser.plot_clusters(clustering.data, labels, centers=model.cluster_centers_)
+                visualiser.silhouette_plot(clustering.data, labels)
 
             elif algo == "DBSCAN":
                 eps = st.slider("Epsilon", 0.1, 10.0, 0.5)
                 min_samples = st.slider("Min Samples", 2, 20, 5)
-                model, labels = clustering.dbscan(eps=eps, min_samples=min_samples)
+                labels, model = clustering.dbscan_clustering(X=clustering.data, eps=eps, min_samples=min_samples)
                 evaluator = Evaluator(df)
-                metrics = evaluator.evaluate_clustering(df, labels)
+                metrics = evaluator.evaluate_clustering(clustering.data, labels)
                 st.write("### Evaluation Metrics", metrics)
-                visualiser.plot_clusters(df, labels)
-                visualiser.silhouette_plot(df, labels)
+                visualiser.plot_clusters(clustering.data, labels)
+                visualiser.silhouette_plot(clustering.data, labels)
 
             elif algo == "Agglomerative":
                 n_clusters = st.slider("Number of clusters", 2, 10, 3)
-                model, labels = clustering.hierarchical_clustering(n_clusters=n_clusters)
+                labels, model = clustering.agglomerative_clustering(X=clustering.data, n_clusters=n_clusters)
                 evaluator = Evaluator(df)
-                metrics = evaluator.evaluate_clustering(df, labels)
+                metrics = evaluator.evaluate_clustering(clustering.data, labels)
                 st.write("### Evaluation Metrics", metrics)
-                visualiser.plot_clusters(df, labels)
-                visualiser.silhouette_plot(df, labels)
+                visualiser.plot_clusters(clustering.data, labels)
+                visualiser.silhouette_plot(clustering.data, labels)
+
 
         # --- Tab 4: Regression ---
         with tab4:
