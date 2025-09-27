@@ -109,6 +109,7 @@ if df is not None:
         st.header("Clustering")
         clustering = Clustering(df)
         evaluator = Evaluator()
+        metrics = evaluator.evaluate_clustering(df, labels)
         visualiser = Visualizer()
 
         algo = st.selectbox("Choose Clustering Algorithm", ["KMeans", "DBSCAN", "Agglomerative"])
@@ -158,7 +159,7 @@ if df is not None:
         st.header("Regression")
         regression = Regression()
         evaluator = Evaluator()
-        visualiser = Visualizer()
+        metrics = evaluator.evaluate_regression(y, model.predict(X))
 
         # select target column
         target_col = st.selectbox("Select Target Variable", df.columns)
