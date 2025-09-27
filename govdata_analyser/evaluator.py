@@ -18,6 +18,7 @@ class Evaluator:
         self.data = data
 
     # -------- Clustering Evaluation --------
+    
     def evaluate_clustering(self, X, labels):
         metrics = {}
         # Remove noise label (-1) if using DBSCAN
