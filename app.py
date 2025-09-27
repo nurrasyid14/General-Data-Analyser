@@ -5,7 +5,7 @@ from govdata_analyser.clustering import Clustering
 from govdata_analyser.regression import Regression
 from govdata_analyser.visualiser import Visualizer
 from govdata_analyser.evaluator import Evaluator
-from govdata_analyser.eda import EDA   # ✅ make sure you import your EDA class
+from govdata_analyser.preprocessor import EDA, ETL  
 
 st.set_page_config(page_title="General Data Analyser", layout="wide")
 
