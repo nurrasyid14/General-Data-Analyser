@@ -1,164 +1,98 @@
-import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
 import numpy as np
 import streamlit as st
+import plotly.express as px
+import plotly.graph_objects as go
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_samples, silhouette_score
 from typing import Optional, Union
-from govdata_analyser.preprocessor import Cleaner
-from govdata_analyser.clustering import Clustering
-from govdata_analyser.evaluator import Evaluator
-from govdata_analyser.regression import Regression, RegressionAnalysis
 
 
 class Visualizer:
-    """Utility class for dataset visualization: correlation, PCA, t-SNE, clusters, regression."""
+    """Interactive dataset visualizations using Plotly."""
 
     @staticmethod
-    def plot_correlation_matrix(
-        data: pd.DataFrame,
-        title: str = "Correlation Matrix",
-        method: str = "pearson",
-        cmap: str = "coolwarm",
-        figsize: tuple = (10, 8)
-    ) -> None:
+    def plot_correlation_matrix(data: pd.DataFrame, method: str = "pearson") -> None:
         corr = data.corr(method=method, numeric_only=True)
-        fig, ax = plt.subplots(figsize=figsize)
-        sns.heatmap(corr, annot=True, fmt=".2f", cmap=cmap, square=True, ax=ax)
-        ax.set_title(title)
-        st.pyplot(fig)
-        plt.close(fig)
+        fig = px.imshow(
+            corr,
+            text_auto=".2f",
+            color_continuous_scale="RdBu_r",
+            title="Correlation Matrix"
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
     @staticmethod
-    def _reduce_and_plot(
-        data: pd.DataFrame,
-        reducer,
-        title: str,
-        xlabel: str,
-        ylabel: str,
-        labels: Optional[Union[pd.Series, np.ndarray]] = None,
-        figsize: tuple = (8, 6),
-        alpha: float = 0.7,
-        cmap: str = "viridis"
-    ) -> None:
+    def plot_pca(data: pd.DataFrame, n_components: int = 2, labels: Optional[Union[pd.Series, np.ndarray]] = None) -> None:
         scaler = StandardScaler()
-        scaled_data = scaler.fit_transform(data)
-        reduced = reducer.fit_transform(scaled_data)
-
-        fig, ax = plt.subplots(figsize=figsize)
+        reduced = PCA(n_components=n_components).fit_transform(scaler.fit_transform(data))
+        df_plot = pd.DataFrame(reduced, columns=[f"PC{i+1}" for i in range(n_components)])
         if labels is not None:
-            scatter = ax.scatter(reduced[:, 0], reduced[:, 1], c=labels, cmap=cmap, alpha=alpha)
-            fig.colorbar(scatter, ax=ax)
+            df_plot["Label"] = labels
+            fig = px.scatter(df_plot, x="PC1", y="PC2", color="Label", title="PCA Plot")
         else:
-            ax.scatter(reduced[:, 0], reduced[:, 1], alpha=alpha)
-
-        ax.set_title(title)
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-        st.pyplot(fig)
-        plt.close(fig)
+            fig = px.scatter(df_plot, x="PC1", y="PC2", title="PCA Plot")
+        st.plotly_chart(fig, use_container_width=True)
 
     @staticmethod
-    def plot_pca(
-        data: pd.DataFrame,
-        n_components: int = 2,
-        title: str = "PCA Plot",
-        labels: Optional[Union[pd.Series, np.ndarray]] = None,
-        **kwargs
-    ) -> None:
-        reducer = PCA(n_components=n_components)
-        Visualizer._reduce_and_plot(
-            data, reducer,
-            title=title,
-            xlabel="PCA Component 1",
-            ylabel="PCA Component 2",
-            labels=labels,
-            **kwargs
+    def plot_tsne(data: pd.DataFrame, n_components: int = 2, perplexity: float = 30,
+                  labels: Optional[Union[pd.Series, np.ndarray]] = None) -> None:
+        scaler = StandardScaler()
+        reduced = TSNE(n_components=n_components, perplexity=perplexity, random_state=42).fit_transform(
+            scaler.fit_transform(data)
         )
-
-    @staticmethod
-    def plot_tsne(
-        data: pd.DataFrame,
-        n_components: int = 2,
-        perplexity: float = 30,
-        title: str = "t-SNE Plot",
-        labels: Optional[Union[pd.Series, np.ndarray]] = None,
-        **kwargs
-    ) -> None:
-        reducer = TSNE(n_components=n_components, perplexity=perplexity, random_state=42)
-        Visualizer._reduce_and_plot(
-            data, reducer,
-            title=title,
-            xlabel="t-SNE Component 1",
-            ylabel="t-SNE Component 2",
-            labels=labels,
-            **kwargs
-        )
-
-    # ---------- Expert Graphs ----------
+        df_plot = pd.DataFrame(reduced, columns=[f"tSNE{i+1}" for i in range(n_components)])
+        if labels is not None:
+            df_plot["Label"] = labels
+            fig = px.scatter(df_plot, x="tSNE1", y="tSNE2", color="Label", title="t-SNE Plot")
+        else:
+            fig = px.scatter(df_plot, x="tSNE1", y="tSNE2", title="t-SNE Plot")
+        st.plotly_chart(fig, use_container_width=True)
 
     @staticmethod
     def plot_clusters(X: pd.DataFrame, labels: np.ndarray, centers: Optional[np.ndarray] = None) -> None:
-        fig, ax = plt.subplots(figsize=(6, 4))
-        if X.shape[1] >= 2:
-            ax.scatter(X.iloc[:, 0], X.iloc[:, 1], c=labels, cmap="viridis", s=30, alpha=0.7)
-            if centers is not None:
-                ax.scatter(centers[:, 0], centers[:, 1], c="red", marker="x", s=100)
-            ax.set_title("Cluster Visualization")
-            ax.set_xlabel(X.columns[0])
-            ax.set_ylabel(X.columns[1])
-            st.pyplot(fig)
-        else:
-            st.warning("Cluster plot needs at least 2 features.")
-        plt.close(fig)
+        df_plot = X.iloc[:, :2].copy()
+        df_plot["Cluster"] = labels
+        fig = px.scatter(df_plot, x=df_plot.columns[0], y=df_plot.columns[1],
+                         color="Cluster", opacity=0.7, title="Cluster Visualization")
+        if centers is not None:
+            centers_df = pd.DataFrame(centers, columns=df_plot.columns[:2])
+            fig.add_trace(go.Scatter(
+                x=centers_df.iloc[:, 0], y=centers_df.iloc[:, 1],
+                mode="markers", marker=dict(symbol="x", size=12, color="red"),
+                name="Centers"
+            ))
+        st.plotly_chart(fig, use_container_width=True)
 
     @staticmethod
     def silhouette_plot(X: pd.DataFrame, labels: np.ndarray) -> None:
         if len(set(labels)) < 2 or -1 in set(labels):
             st.info("Silhouette plot requires at least 2 clusters without pure noise.")
             return
-
         silhouette_avg = silhouette_score(X, labels)
         sample_values = silhouette_samples(X, labels)
-
-        fig, ax = plt.subplots(figsize=(6, 4))
-        y_lower = 10
-        for i in np.unique(labels):
-            ith = sample_values[labels == i]
-            ith.sort()
-            size = ith.shape[0]
-            y_upper = y_lower + size
-            ax.fill_betweenx(np.arange(y_lower, y_upper), 0, ith)
-            y_lower = y_upper + 10
-        ax.axvline(x=silhouette_avg, color="red", linestyle="--")
-        ax.set_title("Silhouette Plot")
-        st.pyplot(fig)
-        plt.close(fig)
+        df_sil = pd.DataFrame({"Silhouette": sample_values, "Cluster": labels})
+        fig = px.violin(df_sil, y="Silhouette", x="Cluster", box=True, points="all",
+                        title=f"Silhouette Plot (avg={silhouette_avg:.2f})")
+        st.plotly_chart(fig, use_container_width=True)
 
     @staticmethod
     def plot_regression_results(y_true: np.ndarray, y_pred: np.ndarray) -> None:
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.scatter(y_true, y_pred, alpha=0.7)
-        ax.plot([y_true.min(), y_true.max()],
-                [y_true.min(), y_true.max()],
-                color="red", linestyle="--")
-        ax.set_xlabel("Actual")
-        ax.set_ylabel("Predicted")
-        ax.set_title("Predicted vs Actual")
-        st.pyplot(fig)
-        plt.close(fig)
+        df = pd.DataFrame({"Actual": y_true, "Predicted": y_pred})
+        fig = px.scatter(df, x="Actual", y="Predicted", opacity=0.7, title="Predicted vs Actual")
+        fig.add_trace(go.Scatter(
+            x=[df["Actual"].min(), df["Actual"].max()],
+            y=[df["Actual"].min(), df["Actual"].max()],
+            mode="lines", line=dict(color="red", dash="dash"), name="Ideal Fit"
+        ))
+        st.plotly_chart(fig, use_container_width=True)
 
     @staticmethod
     def plot_residuals(y_true: np.ndarray, y_pred: np.ndarray) -> None:
         residuals = y_true - y_pred
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.scatter(y_pred, residuals, alpha=0.7)
-        ax.axhline(0, color="red", linestyle="--")
-        ax.set_xlabel("Predicted")
-        ax.set_ylabel("Residuals")
-        ax.set_title("Residuals Plot")
-        st.pyplot(fig)
-        plt.close(fig)
+        df = pd.DataFrame({"Predicted": y_pred, "Residuals": residuals})
+        fig = px.scatter(df, x="Predicted", y="Residuals", opacity=0.7, title="Residuals Plot")
+        fig.add_hline(y=0, line_dash="dash", line_color="red")
+        st.plotly_chart(fig, use_container_width=True)

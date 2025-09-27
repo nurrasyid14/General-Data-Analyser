@@ -112,41 +112,46 @@ if df is not None:
 
     # Tab 4: Regression
     with tab4:
-        st.header("Regression")
-        regression = Regression()
-        visualiser = Visualizer()
+    st.header("Regression")
 
-        target_col = st.selectbox("Select Target Variable", df.columns)
-        X = df.drop(columns=[target_col])
+    # Select target variable
+    target_col = st.selectbox("Select target column (y)", df.columns)
+    feature_cols = st.multiselect(
+        "Select feature columns (X)", 
+        [col for col in df.columns if col != target_col]
+    )
+
+    if target_col and feature_cols:
+        X = df[feature_cols]
         y = df[target_col]
 
-        algo = st.selectbox("Choose Regression Algorithm", ["Linear", "Polynomial", "Ridge"])
+        model_type = st.selectbox(
+            "Choose regression model",
+            ["linear", "polynomial", "ridge", "lasso", "logistic"]
+        )
 
-        if algo == "Linear":
-            if st.button("Run Linear Regression"):
-                model, _ = regression.linear_regression(X, y)
-                evaluator = Evaluator((X, y))  # ✅ fix
-                metrics = evaluator.evaluate_regression(model, X, y)
-                st.write("### Evaluation Metrics", metrics)
-                visualiser.plot_regression_results(y, model.predict(X))
-                visualiser.plot_residuals(y, model.predict(X))
+        # Params
+        kwargs = {}
+        if model_type == "polynomial":
+            kwargs["degree"] = st.slider("Polynomial degree", 2, 5, 2)
+        if model_type in ["ridge", "lasso"]:
+            kwargs["alpha"] = st.number_input("Alpha (regularization strength)", 0.01, 10.0, 1.0)
 
-        elif algo == "Polynomial":
-            degree = st.slider("Degree", 2, 5, 2)
-            if st.button("Run Polynomial Regression"):
-                model, _ = regression.polynomial_regression(X, y, degree=degree)
-                evaluator = Evaluator((X, y))  # ✅ fix
-                metrics = evaluator.evaluate_regression(model, X, y)
-                st.write("### Evaluation Metrics", metrics)
-                visualiser.plot_regression_results(y, model.predict(X))
-                visualiser.plot_residuals(y, model.predict(X))
+        # Train model
+        reg_analysis = RegressionAnalysis()
+        model, metrics = reg_analysis.perform_regression(X, y, model_type, **kwargs)
 
-        elif algo == "Ridge":
-            alpha = st.slider("Alpha", 0.1, 10.0, 1.0)
-            if st.button("Run Ridge Regression"):
-                model, _ = regression.ridge_regression(X, y, alpha=alpha)
-                evaluator = Evaluator((X, y))  # ✅ fix
-                metrics = evaluator.evaluate_regression(model, X, y)
-                st.write("### Evaluation Metrics", metrics)
-                visualiser.plot_regression_results(y, model.predict(X))
-                visualiser.plot_residuals(y, model.predict(X))
+        st.subheader("Model Evaluation")
+        st.json(metrics)
+
+        # Predictions
+        y_pred = model.predict(X)
+
+        # Plot Actual vs Predicted
+        st.subheader("Predicted vs Actual")
+        Visualizer.plot_regression_results(y, y_pred)
+
+        # Plot residuals (skip for classification)
+        if model_type != "logistic":
+            st.subheader("Residuals Plot")
+            Visualizer.plot_residuals(y, y_pred)
