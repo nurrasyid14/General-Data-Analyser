@@ -112,46 +112,46 @@ if df is not None:
 
     # Tab 4: Regression
     with tab4:
-    st.header("Regression")
+        st.header("Regression")
 
-    # Select target variable
-    target_col = st.selectbox("Select target column (y)", df.columns)
-    feature_cols = st.multiselect(
-        "Select feature columns (X)", 
-        [col for col in df.columns if col != target_col]
-    )
-
-    if target_col and feature_cols:
-        X = df[feature_cols]
-        y = df[target_col]
-
-        model_type = st.selectbox(
-            "Choose regression model",
-            ["linear", "polynomial", "ridge", "lasso", "logistic"]
+        # Select target variable
+        target_col = st.selectbox("Select target column (y)", df.columns)
+        feature_cols = st.multiselect(
+            "Select feature columns (X)", 
+            [col for col in df.columns if col != target_col]
         )
 
-        # Params
-        kwargs = {}
-        if model_type == "polynomial":
-            kwargs["degree"] = st.slider("Polynomial degree", 2, 5, 2)
-        if model_type in ["ridge", "lasso"]:
-            kwargs["alpha"] = st.number_input("Alpha (regularization strength)", 0.01, 10.0, 1.0)
+        if target_col and feature_cols:
+            X = df[feature_cols]
+            y = df[target_col]
 
-        # Train model
-        reg_analysis = RegressionAnalysis()
-        model, metrics = reg_analysis.perform_regression(X, y, model_type, **kwargs)
+            model_type = st.selectbox(
+                "Choose regression model",
+                ["linear", "polynomial", "ridge", "lasso", "logistic"]
+            )
 
-        st.subheader("Model Evaluation")
-        st.json(metrics)
+            # Params
+            kwargs = {}
+            if model_type == "polynomial":
+                kwargs["degree"] = st.slider("Polynomial degree", 2, 5, 2)
+            if model_type in ["ridge", "lasso"]:
+                kwargs["alpha"] = st.number_input("Alpha (regularization strength)", 0.01, 10.0, 1.0)
 
-        # Predictions
-        y_pred = model.predict(X)
+            # Train model
+            reg_analysis = RegressionAnalysis()
+            model, metrics = reg_analysis.perform_regression(X, y, model_type, **kwargs)
 
-        # Plot Actual vs Predicted
-        st.subheader("Predicted vs Actual")
-        Visualizer.plot_regression_results(y, y_pred)
+            st.subheader("Model Evaluation")
+            st.json(metrics)
 
-        # Plot residuals (skip for classification)
-        if model_type != "logistic":
-            st.subheader("Residuals Plot")
-            Visualizer.plot_residuals(y, y_pred)
+            # Predictions
+            y_pred = model.predict(X)
+
+            # Plot Actual vs Predicted
+            st.subheader("Predicted vs Actual")
+            Visualizer.plot_regression_results(y, y_pred)
+
+            # Plot residuals (skip for classification)
+            if model_type != "logistic":
+                st.subheader("Residuals Plot")
+                Visualizer.plot_residuals(y, y_pred)
