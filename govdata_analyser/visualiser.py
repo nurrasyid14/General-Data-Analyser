@@ -11,7 +11,45 @@ from typing import Optional, Union
 
 
 class Visualizer:
-    """Interactive dataset visualizations using Plotly."""
+    """Utility class for dataset visualization."""
+
+    @staticmethod
+    def plot_clusters(X, labels, centers=None):
+        """
+        Plot clusters in 2D using PCA projection.
+        """
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+
+        pca = PCA(n_components=2)
+        X_2d = pca.fit_transform(X)
+
+        df_plot = pd.DataFrame(X_2d, columns=["PC1", "PC2"])
+        df_plot["Cluster"] = labels
+
+        fig = px.scatter(
+            df_plot,
+            x="PC1",
+            y="PC2",
+            color="Cluster",
+            opacity=0.7,
+            title="Cluster Visualization (PCA Projection)"
+        )
+
+        if centers is not None:
+            centers_2d = pca.transform(centers)
+            centers_df = pd.DataFrame(centers_2d, columns=["PC1", "PC2"])
+            fig.add_trace(
+                go.Scatter(
+                    x=centers_df["PC1"],
+                    y=centers_df["PC2"],
+                    mode="markers",
+                    marker=dict(symbol="x", size=12, color="red"),
+                    name="Centers"
+                )
+            )
+
+        st.plotly_chart(fig, use_container_width=True)
 
     @staticmethod
     def plot_correlation_matrix(data: pd.DataFrame, method: str = "pearson") -> None:
@@ -25,7 +63,8 @@ class Visualizer:
         st.plotly_chart(fig, use_container_width=True)
 
     @staticmethod
-    def plot_pca(data: pd.DataFrame, n_components: int = 2, labels: Optional[Union[pd.Series, np.ndarray]] = None) -> None:
+    def plot_pca(data: pd.DataFrame, n_components: int = 2,
+                 labels: Optional[Union[pd.Series, np.ndarray]] = None) -> None:
         scaler = StandardScaler()
         reduced = PCA(n_components=n_components).fit_transform(scaler.fit_transform(data))
         df_plot = pd.DataFrame(reduced, columns=[f"PC{i+1}" for i in range(n_components)])
@@ -40,30 +79,14 @@ class Visualizer:
     def plot_tsne(data: pd.DataFrame, n_components: int = 2, perplexity: float = 30,
                   labels: Optional[Union[pd.Series, np.ndarray]] = None) -> None:
         scaler = StandardScaler()
-        reduced = TSNE(n_components=n_components, perplexity=perplexity, random_state=42).fit_transform(
-            scaler.fit_transform(data)
-        )
+        reduced = TSNE(n_components=n_components, perplexity=perplexity,
+                       random_state=42).fit_transform(scaler.fit_transform(data))
         df_plot = pd.DataFrame(reduced, columns=[f"tSNE{i+1}" for i in range(n_components)])
         if labels is not None:
             df_plot["Label"] = labels
             fig = px.scatter(df_plot, x="tSNE1", y="tSNE2", color="Label", title="t-SNE Plot")
         else:
             fig = px.scatter(df_plot, x="tSNE1", y="tSNE2", title="t-SNE Plot")
-        st.plotly_chart(fig, use_container_width=True)
-
-    @staticmethod
-    def plot_clusters(X: pd.DataFrame, labels: np.ndarray, centers: Optional[np.ndarray] = None) -> None:
-        df_plot = X.iloc[:, :2].copy()
-        df_plot["Cluster"] = labels
-        fig = px.scatter(df_plot, x=df_plot.columns[0], y=df_plot.columns[1],
-                         color="Cluster", opacity=0.7, title="Cluster Visualization")
-        if centers is not None:
-            centers_df = pd.DataFrame(centers, columns=df_plot.columns[:2])
-            fig.add_trace(go.Scatter(
-                x=centers_df.iloc[:, 0], y=centers_df.iloc[:, 1],
-                mode="markers", marker=dict(symbol="x", size=12, color="red"),
-                name="Centers"
-            ))
         st.plotly_chart(fig, use_container_width=True)
 
     @staticmethod
@@ -74,8 +97,14 @@ class Visualizer:
         silhouette_avg = silhouette_score(X, labels)
         sample_values = silhouette_samples(X, labels)
         df_sil = pd.DataFrame({"Silhouette": sample_values, "Cluster": labels})
-        fig = px.violin(df_sil, y="Silhouette", x="Cluster", box=True, points="all",
-                        title=f"Silhouette Plot (avg={silhouette_avg:.2f})")
+        fig = px.violin(
+            df_sil,
+            y="Silhouette",
+            x="Cluster",
+            box=True,
+            points="all",
+            title=f"Silhouette Plot (avg={silhouette_avg:.2f})"
+        )
         st.plotly_chart(fig, use_container_width=True)
 
     @staticmethod
@@ -85,7 +114,9 @@ class Visualizer:
         fig.add_trace(go.Scatter(
             x=[df["Actual"].min(), df["Actual"].max()],
             y=[df["Actual"].min(), df["Actual"].max()],
-            mode="lines", line=dict(color="red", dash="dash"), name="Ideal Fit"
+            mode="lines",
+            line=dict(color="red", dash="dash"),
+            name="Ideal Fit"
         ))
         st.plotly_chart(fig, use_container_width=True)
 
