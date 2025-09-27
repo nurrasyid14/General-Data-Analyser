@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
+import streamlit as st
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
@@ -11,6 +12,7 @@ from govdata_analyser.preprocessor import Cleaner
 from govdata_analyser.clustering import Clustering
 from govdata_analyser.evaluator import Evaluator
 from govdata_analyser.regression import Regression, RegressionAnalysis
+
 
 class Visualizer:
     """Utility class for dataset visualization: correlation, PCA, t-SNE, clusters, regression."""
@@ -24,10 +26,11 @@ class Visualizer:
         figsize: tuple = (10, 8)
     ) -> None:
         corr = data.corr(method=method, numeric_only=True)
-        plt.figure(figsize=figsize)
-        sns.heatmap(corr, annot=True, fmt=".2f", cmap=cmap, square=True)
-        plt.title(title)
-        plt.show()
+        fig, ax = plt.subplots(figsize=figsize)
+        sns.heatmap(corr, annot=True, fmt=".2f", cmap=cmap, square=True, ax=ax)
+        ax.set_title(title)
+        st.pyplot(fig)
+        plt.close(fig)
 
     @staticmethod
     def _reduce_and_plot(
@@ -45,17 +48,18 @@ class Visualizer:
         scaled_data = scaler.fit_transform(data)
         reduced = reducer.fit_transform(scaled_data)
 
-        plt.figure(figsize=figsize)
+        fig, ax = plt.subplots(figsize=figsize)
         if labels is not None:
-            scatter = plt.scatter(reduced[:, 0], reduced[:, 1], c=labels, cmap=cmap, alpha=alpha)
-            plt.colorbar(scatter)
+            scatter = ax.scatter(reduced[:, 0], reduced[:, 1], c=labels, cmap=cmap, alpha=alpha)
+            fig.colorbar(scatter, ax=ax)
         else:
-            plt.scatter(reduced[:, 0], reduced[:, 1], alpha=alpha)
+            ax.scatter(reduced[:, 0], reduced[:, 1], alpha=alpha)
 
-        plt.title(title)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.show()
+        ax.set_title(title)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        st.pyplot(fig)
+        plt.close(fig)
 
     @staticmethod
     def plot_pca(
@@ -94,67 +98,67 @@ class Visualizer:
             **kwargs
         )
 
-    # ---------- NEW METHODS ----------
+    # ---------- Expert Graphs ----------
 
     @staticmethod
     def plot_clusters(X: pd.DataFrame, labels: np.ndarray, centers: Optional[np.ndarray] = None) -> None:
-        """Scatterplot of clustered data (first 2 features only)."""
-        plt.figure(figsize=(6, 4))
+        fig, ax = plt.subplots(figsize=(6, 4))
         if X.shape[1] >= 2:
-            plt.scatter(X.iloc[:, 0], X.iloc[:, 1], c=labels, cmap="viridis", s=30, alpha=0.7)
+            ax.scatter(X.iloc[:, 0], X.iloc[:, 1], c=labels, cmap="viridis", s=30, alpha=0.7)
             if centers is not None:
-                plt.scatter(centers[:, 0], centers[:, 1], c="red", marker="x", s=100)
-            plt.title("Cluster Visualization")
-            plt.xlabel(X.columns[0])
-            plt.ylabel(X.columns[1])
-            plt.show()
+                ax.scatter(centers[:, 0], centers[:, 1], c="red", marker="x", s=100)
+            ax.set_title("Cluster Visualization")
+            ax.set_xlabel(X.columns[0])
+            ax.set_ylabel(X.columns[1])
+            st.pyplot(fig)
         else:
-            print("Cluster plot needs at least 2 features.")
+            st.warning("Cluster plot needs at least 2 features.")
+        plt.close(fig)
 
     @staticmethod
     def silhouette_plot(X: pd.DataFrame, labels: np.ndarray) -> None:
-        """Silhouette plot for cluster quality."""
         if len(set(labels)) < 2 or -1 in set(labels):
-            print("Silhouette plot requires at least 2 clusters without pure noise.")
+            st.info("Silhouette plot requires at least 2 clusters without pure noise.")
             return
 
         silhouette_avg = silhouette_score(X, labels)
         sample_values = silhouette_samples(X, labels)
 
-        plt.figure(figsize=(6, 4))
+        fig, ax = plt.subplots(figsize=(6, 4))
         y_lower = 10
         for i in np.unique(labels):
             ith = sample_values[labels == i]
             ith.sort()
             size = ith.shape[0]
             y_upper = y_lower + size
-            plt.fill_betweenx(np.arange(y_lower, y_upper), 0, ith)
+            ax.fill_betweenx(np.arange(y_lower, y_upper), 0, ith)
             y_lower = y_upper + 10
-        plt.axvline(x=silhouette_avg, color="red", linestyle="--")
-        plt.title("Silhouette Plot")
-        plt.show()
+        ax.axvline(x=silhouette_avg, color="red", linestyle="--")
+        ax.set_title("Silhouette Plot")
+        st.pyplot(fig)
+        plt.close(fig)
 
     @staticmethod
     def plot_regression_results(y_true: np.ndarray, y_pred: np.ndarray) -> None:
-        """Scatter of predicted vs actual."""
-        plt.figure(figsize=(6, 4))
-        plt.scatter(y_true, y_pred, alpha=0.7)
-        plt.plot([y_true.min(), y_true.max()],
-                 [y_true.min(), y_true.max()],
-                 color="red", linestyle="--")
-        plt.xlabel("Actual")
-        plt.ylabel("Predicted")
-        plt.title("Predicted vs Actual")
-        plt.show()
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.scatter(y_true, y_pred, alpha=0.7)
+        ax.plot([y_true.min(), y_true.max()],
+                [y_true.min(), y_true.max()],
+                color="red", linestyle="--")
+        ax.set_xlabel("Actual")
+        ax.set_ylabel("Predicted")
+        ax.set_title("Predicted vs Actual")
+        st.pyplot(fig)
+        plt.close(fig)
 
     @staticmethod
     def plot_residuals(y_true: np.ndarray, y_pred: np.ndarray) -> None:
-        """Residuals plot."""
         residuals = y_true - y_pred
-        plt.figure(figsize=(6, 4))
-        plt.scatter(y_pred, residuals, alpha=0.7)
-        plt.axhline(0, color="red", linestyle="--")
-        plt.xlabel("Predicted")
-        plt.ylabel("Residuals")
-        plt.title("Residuals Plot")
-        plt.show()
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.scatter(y_pred, residuals, alpha=0.7)
+        ax.axhline(0, color="red", linestyle="--")
+        ax.set_xlabel("Predicted")
+        ax.set_ylabel("Residuals")
+        ax.set_title("Residuals Plot")
+        st.pyplot(fig)
+        plt.close(fig)
