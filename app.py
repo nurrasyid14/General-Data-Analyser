@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import pandas as pd
 
@@ -135,4 +134,3 @@ if df is not None:
         st.header("Expert Visualizations")
         st.write("Use this space to review advanced plots (silhouette, residuals, etc.)")
         # Placeholder: can be populated with custom visualiser methods
-```
