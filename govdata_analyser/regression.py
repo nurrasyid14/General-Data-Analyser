@@ -61,33 +61,31 @@ class Regression:
         return model.predict(X)
 
 class RegressionAnalysis:
+    """Wrapper for running regression models with consistent API."""
+
     def __init__(self):
         self.regression = Regression()
-        self.clustering = Clustering()
         self.data = None
+
     def load_data(self, file_path):
         self.data = pd.read_csv(file_path)
         return self.data
-    def perform_clustering(self, n_clusters=3):
-        if self.data is None:
-            raise ValueError("Data not loaded. Please load data before clustering.")
-        clustering_model = self.clustering.hierarchical_clustering(self.data, n_clusters=n_clusters)
-        return clustering_model
-    def perform_regression(self, X, y, model_type='linear', **kwargs):
-        if model_type == 'linear':
-            model = self.regression.linear_regression(X, y)
-        elif model_type == 'polynomial':
-            degree = kwargs.get('degree', 2)
-            model, poly = self.regression.polynomial_regression(X, y, degree=degree)
-            return model, poly
-        elif model_type == 'ridge':
-            alpha = kwargs.get('alpha', 1.0)
-            model = self.regression.ridge_regression(X, y, alpha=alpha)
-        elif model_type == 'lasso':
-            alpha = kwargs.get('alpha', 1.0)
-            model = self.regression.lasso_regression(X, y, alpha=alpha)
-        elif model_type == 'logistic':
-            model = self.regression.logistic_regression(X, y)
+
+    def perform_regression(self, X, y, model_type="linear", **kwargs):
+        if model_type == "linear":
+            return self.regression.linear_regression(X, y)
+        elif model_type == "polynomial":
+            degree = kwargs.get("degree", 2)
+            return self.regression.polynomial_regression(X, y, degree=degree)
+        elif model_type == "ridge":
+            alpha = kwargs.get("alpha", 1.0)
+            return self.regression.ridge_regression(X, y, alpha=alpha)
+        elif model_type == "lasso":
+            alpha = kwargs.get("alpha", 1.0)
+            return self.regression.lasso_regression(X, y, alpha=alpha)
+        elif model_type == "logistic":
+            return self.regression.logistic_regression(X, y)
         else:
-            raise ValueError("Unsupported model type. Choose from 'linear', 'polynomial', 'ridge', 'lasso', 'logistic'.")
-        return model
+            raise ValueError(
+                "Unsupported model type. Choose from 'linear', 'polynomial', 'ridge', 'lasso', 'logistic'."
+            )
