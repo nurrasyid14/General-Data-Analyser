@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 import pandas as pd
 
@@ -14,7 +15,7 @@ st.set_page_config(page_title="AST : Government Data Analysis", layout="wide")
 st.title("AST : Government Data Analysis")
 
 # -----------------------
-# File Upload
+# File Upload + Auto Preprocessing
 # -----------------------
 uploaded_file = st.file_uploader("Upload CSV dataset", type="csv")
 
@@ -22,8 +23,11 @@ if "df" not in st.session_state:
     st.session_state.df = None
 
 if uploaded_file:
-    st.session_state.df = pd.read_csv(uploaded_file)
-    st.success("✅ Dataset uploaded successfully!")
+    raw_df = pd.read_csv(uploaded_file)
+    cleaner = Cleaner(raw_df)
+    cleaned_df = cleaner.clean()   # ✅ auto-cleaning here
+    st.session_state.df = cleaned_df
+    st.success("✅ Dataset uploaded and cleaned successfully!")
 
 df = st.session_state.df
 
@@ -32,20 +36,17 @@ df = st.session_state.df
 # -----------------------
 if df is not None:
     tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        ["Data & Cleaning", "EDA", "Clustering", "Regression", "Visualization"]
+        ["Data Preview", "EDA", "Clustering", "Regression", "Visualization"]
     )
 
     # -----------------------
-    # Tab 1: Data & Cleaning
+    # Tab 1: Data Preview
     # -----------------------
     with tab1:
-        st.header("Data Cleaning")
+        st.header("Data Preview (Cleaned)")
         st.dataframe(df.head())
-        cleaner = Cleaner(df)
-        if st.button("Clean Data"):
-            df = cleaner.clean()
-            st.session_state.df = df
-            st.success("✅ Data cleaned!")
+        st.write("### Summary Statistics (after cleaning)")
+        st.write(df.describe())
 
     # -----------------------
     # Tab 2: EDA
@@ -53,9 +54,6 @@ if df is not None:
     with tab2:
         st.header("Exploratory Data Analysis")
         eda = EDA(df)
-        st.write("### Summary Statistics")
-        st.write(df.describe())
-
         st.write("### Missing Values")
         st.bar_chart(df.isnull().sum())
 
@@ -137,3 +135,4 @@ if df is not None:
         st.header("Expert Visualizations")
         st.write("Use this space to review advanced plots (silhouette, residuals, etc.)")
         # Placeholder: can be populated with custom visualiser methods
+```
