@@ -3,7 +3,7 @@ import pandas as pd
 
 from govdata_analyser.preprocessor import Cleaner, EDA
 from govdata_analyser.clustering import Clustering
-from govdata_analyser.regression import Regression
+from govdata_analyser.regression import Regression, RegressionAnalysis
 from govdata_analyser.evaluator import Evaluator
 from govdata_analyser.visualiser import Visualizer
 
