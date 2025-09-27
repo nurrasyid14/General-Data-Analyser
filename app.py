@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 
-from govdata_analyser.preprocessor import Cleaner, EDA
 from govdata_analyser.clustering import Clustering
 from govdata_analyser.regression import Regression
 from govdata_analyser.visualiser import Visualizer
@@ -18,34 +17,36 @@ uploaded_files = st.file_uploader(
 )
 
 datasets = {}
+
 if uploaded_files:
     for file in uploaded_files:
         try:
             df = pd.read_csv(file)
-            cleaned_df = Cleaner(df).clean()
-            datasets[file.name] = cleaned_df
+            datasets[file.name] = df.copy()   # ✅ FIX: no Cleaner.clean() needed
         except Exception as e:
             st.error(f"Error loading {file.name}: {e}")
 
-if not datasets:
+    # 🔹 Continue button
+    if st.button("Continue"):
+        dataset_name = st.selectbox("Choose a dataset", list(datasets.keys()))
+        df = datasets[dataset_name]
+        st.success(f"Using dataset: **{dataset_name}**")
+
+        # 🔹 Tabs for workflow
+        tab1, tab2, tab3, tab4 = st.tabs(
+            ["Data Preview", "EDA", "Clustering", "Regression"]
+        )
+
+        # Tab 1: Preview
+        with tab1:
+            st.header(f"Data Preview ({dataset_name})")
+            st.dataframe(df.head())
+            st.write("Shape:", df.shape)
+
+        # (your EDA / Clustering / Regression tabs continue here...)
+else:
     st.info("Please upload at least one dataset to continue.")
-    st.stop()
 
-# 🔹 Dataset selector
-dataset_name = st.selectbox("Choose a dataset", list(datasets.keys()))
-df = datasets[dataset_name]
-st.success(f"Using dataset: **{dataset_name}**")
-
-# 🔹 Tabs for workflow
-tab1, tab2, tab3, tab4 = st.tabs(
-    ["Data Preview", "EDA", "Clustering", "Regression"]
-)
-
-# --- Tab 1: Data Preview ---
-with tab1:
-    st.header(f"Data Preview ({dataset_name})")
-    st.dataframe(df.head())
-    st.write("Shape:", df.shape)
 
 # --- Tab 2: EDA ---
 with tab2:
