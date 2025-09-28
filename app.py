@@ -9,7 +9,7 @@ from govdata_analyser.preprocessor import EDA, ETL
 
 st.set_page_config(page_title="General Data Analyser", layout="wide")
 
-st.title("📊 General Data Analyser")
+st.title("General Data Analyser")
 st.markdown("Upload one or more datasets and perform **EDA, Clustering, and Regression** with interactive visualizations.")
 
 # 🔹 Multiple file uploader
