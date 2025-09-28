@@ -1,4 +1,4 @@
-#data_clustering.py
+#clustering.py
 
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import pairwise_distances
