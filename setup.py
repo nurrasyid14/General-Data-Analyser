@@ -6,7 +6,7 @@ here = pathlib.Path(__file__).parent.resolve()
 long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
-    name="govdata_analyser",  # nama package yang di-install
+    name="nr14_data_analyser",  # nama package yang di-install
     version="0.1.0",
     packages=find_packages(),
     install_requires=[
