@@ -1,7 +1,7 @@
-from govdata_analyser.preprocessor import *
-from govdata_analyser.evaluator import *
-from govdata_analyser.clustering import *
-from govdata_analyser.regression import *
+from nr14_data_analyser.preprocessor import *
+from nr14_data_analyser.evaluator import *
+from nr14_data_analyser.clustering import *
+from nr14_data_analyser.regression import *
 
 
 
