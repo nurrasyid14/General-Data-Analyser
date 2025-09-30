@@ -307,5 +307,5 @@ else:
                 st.error(f"Regression failed: {e}")
 
 
-else:
-    st.info("Please upload at least one dataset to continue.")
+        else:
+            st.info("Please upload at least one dataset to continue.")
