@@ -36,13 +36,10 @@ st.title("General Data Analyser")
 st.markdown("Upload one or more datasets and perform **EDA, Clustering, and Regression** with interactive visualizations.")
 
 # -------------------------
-
 # File upload
-
 # -------------------------
-
 uploaded_files = st.file_uploader(
-"Upload CSV files", type="csv", accept_multiple_files=True
+    "Upload CSV files", type="csv", accept_multiple_files=True
 )
 
 datasets = {}
@@ -55,23 +52,34 @@ if uploaded_files:
         except Exception as e:
             st.error(f"Error loading {file.name}: {e}")
 
+    # ✅ Track "Continue" in session state
+    if "continue_flag" not in st.session_state:
+        st.session_state.continue_flag = False
 
-# ✅ Track "Continue" in session state
-if "continue" not in st.session_state:
-    st.session_state.continue_flag = False
+    col1, col2 = st.columns([1,1])
+    with col1:
+        if st.button("Continue"):
+            st.session_state.continue_flag = True
+    with col2:
+        if st.button("Reset"):
+            st.session_state.continue_flag = False
+            st.experimental_rerun()
 
-if st.button("Continue"):
-    st.session_state.continue_flag = True
+    if st.session_state.continue_flag:
+        dataset_name = st.selectbox("Choose a dataset", list(datasets.keys()))
+        df = datasets[dataset_name]
+        st.success(f"Using dataset: **{dataset_name}**")
 
-if st.session_state.continue_flag:
-    dataset_name = st.selectbox("Choose a dataset", list(datasets.keys()))
-    df = datasets[dataset_name]
-    st.success(f"Using dataset: **{dataset_name}**")
+        # 🚀 Show all your tabs here
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(
+            ["Data Preview", "EDA", "Clustering", "Fuzzy C-Means", "Regression"]
+        )
 
-    # Tabs: Data Preview, EDA, Clustering, Fuzzy C-Means, Regression
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        ["Data Preview", "EDA", "Clustering", "Fuzzy C-Means", "Regression"]
-    )
+        # ... (rest of your tab code unchanged)
+
+else:
+    st.info("Please upload at least one dataset to continue.")
+
 
     # -------------------------
     # Tab 1: Data Preview
