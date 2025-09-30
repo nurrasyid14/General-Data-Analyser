@@ -179,8 +179,7 @@ if uploaded_files:
                     visualiser.silhouette_plot(clustering.data, labels)
 
         # -------------------------
-        # Tab 4: Fuzzy C-Means (separate)
-        # -------------------------
+        # --- Tab 4: Fuzzy C-Means ---
         with tab4:
             st.header(f"Fuzzy C-Means Clustering ({dataset_name})")
             numeric_df = df.select_dtypes(include=["number"])
@@ -196,48 +195,47 @@ if uploaded_files:
                 error = st.number_input("Error tolerance", min_value=0.0001, value=0.005, step=0.0001, key="fcm_error")
                 maxiter = st.number_input("Max iterations", min_value=100, value=1000, step=100, key="fcm_maxiter")
 
-                run_fcm = st.button("Run Fuzzy C-Means")
-                if run_fcm:
-                    try:
-                        # Important: FuzzyCMeans expects shape (n_samples, n_features)
-                        fcm = FuzzyCMeans(clustering.data, n_clusters=n_clusters, m=m, error=error, maxiter=maxiter)
-                        fcm.fit()
-                        labels = fcm.predict()  # hard labels via argmax
+                # ✅ Persistent run button
+                if "fcm_run" not in st.session_state:
+                    st.session_state.fcm_run = False
 
-                        # Evaluate using hard labels
+                if st.button("Run Fuzzy C-Means"):
+                    st.session_state.fcm_run = True
+
+                if st.session_state.fcm_run:
+                    try:
+                        fcm = FuzzyCMeans(
+                            clustering.data,
+                            n_clusters=n_clusters,
+                            m=m,
+                            error=error,
+                            maxiter=maxiter
+                        )
+                        fcm.fit()
+                        labels = fcm.predict()
+
+                        # Evaluation
                         evaluator = Evaluator(df)
                         metrics = evaluator.evaluate_clustering(clustering.data, labels)
                         st.write("### Evaluation Metrics", metrics)
 
-                        # Hard-cluster visualisation (PCA projection inside Visualizer)
+                        # Visualisation
                         visualiser.plot_clusters(clustering.data, labels, centers=fcm.centers)
                         visualiser.silhouette_plot(clustering.data, labels)
 
-                        # Show membership matrix as table
-                        if st.checkbox("Show membership matrix (table)"):
-                            df_membership = pd.DataFrame(fcm.u.T, columns=[f"Cluster {i}" for i in range(fcm.u.shape[0])])
-                            df_membership.index = [f"Sample {i}" for i in range(df_membership.shape[0])]
-                            st.dataframe(df_membership)
-
-                        # Heatmap for membership
-                        if st.checkbox("Show membership heatmap"):
-                            visualiser.plot_membership_heatmap(fcm.u)
-
-                        # Soft cluster visualisation: let user pick the cluster index
-                        if st.checkbox("Visualize soft clusters (per-cluster membership)"):
-                            if fcm.u.shape[0] == 0:
-                                st.warning("No clusters available in membership matrix.")
-                            else:
-                                cluster_idx = st.selectbox("Select cluster to visualize", options=list(range(fcm.u.shape[0])), index=0)
-                                visualiser.plot_soft_clusters(clustering.data, fcm.u, cluster_index=cluster_idx)
-
-                        # Optionally export membership matrix
-                        if st.checkbox("Download membership CSV"):
-                            csv = pd.DataFrame(fcm.u.T, columns=[f"Cluster {i}" for i in range(fcm.u.shape[0])]).to_csv(index=False)
-                            st.download_button("Download membership.csv", data=csv, file_name="membership.csv", mime="text/csv")
+                        # Membership Matrix
+                        if st.checkbox("Show membership matrix"):
+                            st.dataframe(
+                                pd.DataFrame(
+                                    fcm.u.T,
+                                    columns=[f"Cluster {i}" for i in range(fcm.u.shape[0])]
+                                )
+                            )
 
                     except Exception as e:
                         st.error(f"Fuzzy C-Means failed: {e}")
+                        st.session_state.fcm_run = False  # reset on error
+
 
         # -------------------------
         # Tab 5: Regression
