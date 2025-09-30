@@ -155,9 +155,7 @@ if uploaded_files:
         # -------------------------
         # Tab 3: Clustering (classic)
         # -------------------------
-  # -------------------------
-# Tab 3: Clustering (classic)
-# -------------------------
+
         with tab3:
             st.header(f"Clustering ({dataset_name})")
             algo = st.selectbox("Choose clustering algorithm", ["KMeans", "DBSCAN", "Agglomerative"])
@@ -251,6 +249,10 @@ if uploaded_files:
                         if st.checkbox("Show soft clusters for one cluster"):
                             cluster_id = st.slider("Cluster ID", 0, n_clusters - 1, 0)
                             cvisualiser.plot_soft_clusters(clustering.data, fcm.u, cluster_id)
+
+                        if st.checkbox("Show hard cluster mapping (classic FCM view)"):
+                            cvisualiser.plot_fuzzy_clusters(clustering.data, fcm.u)
+
 
                     except Exception as e:
                         st.error(f"Fuzzy C-Means failed: {e}")
