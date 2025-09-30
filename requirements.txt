@@ -10,3 +10,5 @@ plotly
 plotly-express
 openpyxl
 xlrd
+scikit-fuzzy
+fuzzy-c-means
