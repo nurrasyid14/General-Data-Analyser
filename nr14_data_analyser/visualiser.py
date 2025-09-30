@@ -264,6 +264,41 @@ class ClusteringVisualiser:
         st.plotly_chart(fig, use_container_width=True)
 
         # Fuzzy C-Means extras
+
+    @staticmethod
+    def plot_fuzzy_clusters(X, u: np.ndarray):
+        """
+        Scatter plot of fuzzy c-means clusters using hard labels (argmax of membership).
+        If X has >2 features, reduce with PCA.
+        """
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+
+        # Hard labels from membership
+        labels = np.argmax(u, axis=0)
+
+        # If data >2D, reduce with PCA
+        if X.shape[1] > 2:
+            pca = PCA(n_components=2)
+            X_2d = pca.fit_transform(X)
+            df_plot = pd.DataFrame(X_2d, columns=["PC1", "PC2"])
+        else:
+            df_plot = X.copy()
+            df_plot.columns = ["X1", "X2"]
+
+        df_plot["Cluster"] = labels
+
+        fig = px.scatter(
+            df_plot,
+            x=df_plot.columns[0],
+            y=df_plot.columns[1],
+            color="Cluster",
+            symbol="Cluster",
+            title="Fuzzy C-Means Clusters (Hard Labels)",
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+
     @staticmethod
     def plot_membership_heatmap(u: np.ndarray):
         """
