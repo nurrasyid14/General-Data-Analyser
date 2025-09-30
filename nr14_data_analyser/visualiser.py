@@ -194,4 +194,7 @@ class Visualizer:
         fig = px.scatter_matrix(data, title="Pairplot")
         st.plotly_chart(fig, use_container_width=True)
 
-        
+    @staticmethod
+    def plot_box(data: pd.DataFrame, x: str, y: str) -> None:
+        fig = px.box(data, x=x, y=y, title=f"Boxplot of {y} by {x}")
+        st.plotly_chart(fig, use_container_width=True)
