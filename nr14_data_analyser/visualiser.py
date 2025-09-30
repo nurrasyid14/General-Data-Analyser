@@ -1,3 +1,4 @@
+#visualiser.py
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -126,4 +127,43 @@ class Visualizer:
         df = pd.DataFrame({"Predicted": y_pred, "Residuals": residuals})
         fig = px.scatter(df, x="Predicted", y="Residuals", opacity=0.7, title="Residuals Plot")
         fig.add_hline(y=0, line_dash="dash", line_color="red")
+        st.plotly_chart(fig, use_container_width=True)
+
+    @staticmethod
+    def plot_membership_heatmap(u: np.ndarray) -> None:
+        """
+        Plot a heatmap of the membership matrix (samples × clusters).
+        """
+        df_u = pd.DataFrame(u.T, columns=[f"Cluster {i}" for i in range(u.shape[0])])
+        fig = px.imshow(
+            df_u,
+            aspect="auto",
+            color_continuous_scale="viridis",
+            title="Membership Matrix Heatmap"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    @staticmethod
+    def plot_soft_clusters(X: Union[pd.DataFrame, np.ndarray], u: np.ndarray, cluster_index: int = 0):
+        """
+        Scatter plot with membership strength as color intensity for one cluster.
+        """
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+
+        pca = PCA(n_components=2)
+        X_2d = pca.fit_transform(X)
+
+        df_plot = pd.DataFrame(X_2d, columns=["PC1", "PC2"])
+        df_plot["Membership"] = u[cluster_index]
+
+        fig = px.scatter(
+            df_plot,
+            x="PC1",
+            y="PC2",
+            color="Membership",
+            opacity=0.8,
+            color_continuous_scale="viridis",
+            title=f"Fuzzy Cluster {cluster_index} Membership"
+        )
         st.plotly_chart(fig, use_container_width=True)

@@ -2,8 +2,8 @@
 
 from sklearn.cluster import KMeans
 import pandas as pd
-from govdata_analyser.clustering import Clustering
-from govdata_analyser.preprocessor import EDA, ETL
+from nr14_data_analyser.clustering import Clustering
+from nr14_data_analyser.preprocessor import EDA, ETL
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score

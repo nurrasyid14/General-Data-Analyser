@@ -9,7 +9,7 @@ from scipy.cluster import hierarchy
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
-from govdata_analyser.preprocessor import Cleaner
+from nr14_data_analyser.preprocessor import Cleaner
  
 
 class Clustering:
