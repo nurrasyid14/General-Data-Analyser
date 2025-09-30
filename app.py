@@ -135,7 +135,7 @@ if uploaded_files:
                     st.info("No numeric columns for box plots.")
                 else:
                     col = st.selectbox("Select column for box plot", numeric_cols)
-                    visualiser.plot_box(df, col)
+                    visualiser.plot_box(df, x= col, y = None)
 
             if st.checkbox("Show Outliers using IQR"):
                 numeric_cols = df.select_dtypes(include=["number"]).columns
