@@ -168,30 +168,30 @@ class Visualizer:
         )
         st.plotly_chart(fig, use_container_width=True)
 
-        @staticmethod
-        def boxplot(data: pd.DataFrame, column: str) -> None:
-            fig = px.box(data, y=column, title=f"Boxplot of {column}")
-            st.plotly_chart(fig, use_container_width=True)
+    @staticmethod
+    def boxplot(data: pd.DataFrame, column: str) -> None:
+        fig = px.box(data, y=column, title=f"Boxplot of {column}")
+        st.plotly_chart(fig, use_container_width=True)
 
-        @staticmethod
-        def plot_distribution(data: pd.DataFrame, column: str) -> None:
-            fig = px.histogram(data, x=column, nbins=30, title=f"Distribution of {column}")
-            st.plotly_chart(fig, use_container_width=True)
+    @staticmethod
+    def plot_distribution(data: pd.DataFrame, column: str) -> None:
+        fig = px.histogram(data, x=column, nbins=30, title=f"Distribution of {column}")
+        st.plotly_chart(fig, use_container_width=True)
 
-        @staticmethod
-        def plot_missing_values_heatmap(data: pd.DataFrame) -> None:
-            missing = data.isnull()
-            fig = px.imshow(
-                missing.T,
-                aspect="auto",
-                color_continuous_scale="gray",
-                title="Missing Values Heatmap"
+    @staticmethod
+    def plot_missing_values_heatmap(data: pd.DataFrame) -> None:
+        missing = data.isnull()
+        fig = px.imshow(
+            missing.T,
+            aspect="auto",
+            color_continuous_scale="gray",
+            title="Missing Values Heatmap"
             )
-            st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
 
-        @staticmethod
-        def plot_pairplot(data: pd.DataFrame) -> None:
-            fig = px.scatter_matrix(data, title="Pairplot")
-            st.plotly_chart(fig, use_container_width=True)
+    @staticmethod
+    def plot_pairplot(data: pd.DataFrame) -> None:
+        fig = px.scatter_matrix(data, title="Pairplot")
+        st.plotly_chart(fig, use_container_width=True)
 
         
