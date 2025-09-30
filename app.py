@@ -261,53 +261,62 @@ if uploaded_files:
         # -------------------------
         # Tab 5: Regression
         # -------------------------
+
         with tab5:
             st.header(f"Regression ({dataset_name})")
-            target = st.selectbox("Select target column", df.columns, index=0)
-            feature_options = [c for c in df.columns if c != target]
-            features = st.multiselect("Select feature columns", feature_options)
 
-            if features and target:
-                X = df[features].values
-                y = df[target].values
-                regression = Regression()
-                visualiser = Visualizer()
+            # Drop categorical / non-numeric columns
+            numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
 
-                algo = st.selectbox(
-                    "Choose regression algorithm",
-                    ["Linear", "Polynomial", "Ridge", "Lasso", "Logistic"],
-                )
+            if len(numeric_cols) == 0:
+                st.warning("No numeric columns available for regression.")
+            else:
+                target = st.selectbox("Select target column", numeric_cols, index=0)
+                feature_options = [c for c in numeric_cols if c != target]
+                features = st.multiselect("Select feature columns", feature_options)
 
-                try:
-                    if algo == "Linear":
-                        model, _ = regression.linear_regression(X, y)
-                    elif algo == "Polynomial":
-                        degree = st.slider("Polynomial degree", 2, 5, 2)
-                        model, _ = regression.polynomial_regression(X, y, degree=degree)
-                    elif algo == "Ridge":
-                        alpha = st.slider("Alpha (Ridge)", 0.01, 10.0, 1.0)
-                        model, _ = regression.ridge_regression(X, y, alpha=alpha)
-                    elif algo == "Lasso":
-                        alpha = st.slider("Alpha (Lasso)", 0.01, 10.0, 1.0)
-                        model, _ = regression.lasso_regression(X, y, alpha=alpha)
-                    elif algo == "Logistic":
-                        model, _ = regression.logistic_regression(X, y)
+                if features and target:
+                    X = df[features].values
+                    y = df[target].values
+                    regression = Regression()
+                    visualiser = Visualizer()
 
-                    evaluator = Evaluator((X, y))
-                    if algo == "Logistic":
-                        metrics = evaluator.evaluate_classification(model, X, y)
-                    else:
-                        metrics = evaluator.evaluate_regression(model, X, y)
+                    algo = st.selectbox(
+                        "Choose regression algorithm",
+                        ["Linear", "Polynomial", "Ridge", "Lasso", "Logistic"],
+                    )
 
-                    st.write("### Evaluation Metrics", metrics)
+                    try:
+                        if algo == "Linear":
+                            model, _ = regression.linear_regression(X, y)
+                        elif algo == "Polynomial":
+                            degree = st.slider("Polynomial degree", 2, 5, 2)
+                            model, _ = regression.polynomial_regression(X, y, degree=degree)
+                        elif algo == "Ridge":
+                            alpha = st.slider("Alpha (Ridge)", 0.01, 10.0, 1.0)
+                            model, _ = regression.ridge_regression(X, y, alpha=alpha)
+                        elif algo == "Lasso":
+                            alpha = st.slider("Alpha (Lasso)", 0.01, 10.0, 1.0)
+                            model, _ = regression.lasso_regression(X, y, alpha=alpha)
+                        elif algo == "Logistic":
+                            model, _ = regression.logistic_regression(X, y)
 
-                    if algo != "Logistic":
-                        y_pred = model.predict(X)
-                        visualiser.plot_regression_results(y, y_pred)
-                        visualiser.plot_residuals(y, y_pred)
+                        evaluator = Evaluator((X, y))
+                        if algo == "Logistic":
+                            metrics = evaluator.evaluate_classification(model, X, y)
+                        else:
+                            metrics = evaluator.evaluate_regression(model, X, y)
 
-                except Exception as e:
-                    st.error(f"Regression failed: {e}")
+                        st.write("### Evaluation Metrics", metrics)
+
+                        if algo != "Logistic":
+                            y_pred = model.predict(X)
+                            visualiser.plot_regression_results(y, y_pred)
+                            visualiser.plot_residuals(y, y_pred)
+
+                    except Exception as e:
+                        st.error(f"Regression failed: {e}")
+
 
 else:
     st.info("Please upload at least one dataset to continue.")
