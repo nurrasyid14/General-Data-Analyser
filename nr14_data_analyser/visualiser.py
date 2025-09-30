@@ -198,3 +198,106 @@ class Visualizer:
     def plot_box(data: pd.DataFrame, x: str, y: str) -> None:
         fig = px.box(data, x=x, y=y, title=f"Boxplot of {y} by {x}")
         st.plotly_chart(fig, use_container_width=True)
+
+class ClusteringVisualiser:
+    """Utility class for visualizing clustering results."""
+
+    @staticmethod
+    def plot_clusters(X, labels, centers=None):
+        """
+        Plot clusters in 2D using PCA projection.
+        """
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+
+        pca = PCA(n_components=2)
+        X_2d = pca.fit_transform(X)
+
+        df_plot = pd.DataFrame(X_2d, columns=["PC1", "PC2"])
+        df_plot["Cluster"] = labels
+
+        fig = px.scatter(
+            df_plot,
+            x="PC1",
+            y="PC2",
+            color="Cluster",
+            opacity=0.7,
+            title="Cluster Visualization (PCA Projection)"
+        )
+
+        if centers is not None:
+            centers_2d = pca.transform(centers)
+            centers_df = pd.DataFrame(centers_2d, columns=["PC1", "PC2"])
+            fig.add_trace(
+                go.Scatter(
+                    x=centers_df["PC1"],
+                    y=centers_df["PC2"],
+                    mode="markers",
+                    marker=dict(symbol="x", size=12, color="red"),
+                    name="Centers"
+                )
+            )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    @staticmethod
+    def silhouette_plot(X: pd.DataFrame, labels: np.ndarray) -> None:
+        """
+        Silhouette violin plot for cluster quality.
+        """
+        if len(set(labels)) < 2 or -1 in set(labels):
+            st.info("Silhouette plot requires at least 2 clusters without pure noise.")
+            return
+
+        silhouette_avg = silhouette_score(X, labels)
+        sample_values = silhouette_samples(X, labels)
+        df_sil = pd.DataFrame({"Silhouette": sample_values, "Cluster": labels})
+
+        fig = px.violin(
+            df_sil,
+            y="Silhouette",
+            x="Cluster",
+            box=True,
+            points="all",
+            title=f"Silhouette Plot (avg={silhouette_avg:.2f})"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    # -----------------------
+    # Fuzzy C-Means extras
+    # -----------------------
+    @staticmethod
+    def plot_membership_heatmap(u: np.ndarray):
+        """
+        Heatmap of membership matrix (clusters × samples).
+        """
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.heatmap(u, cmap="viridis", cbar=True, ax=ax)
+        ax.set_title("Fuzzy Membership Matrix")
+        ax.set_xlabel("Samples")
+        ax.set_ylabel("Clusters")
+        st.pyplot(fig)
+
+    @staticmethod
+    def plot_soft_clusters(X, u, cluster_id=0):
+        """
+        Scatter plot showing membership strength for a chosen cluster.
+        """
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+
+        pca = PCA(n_components=2)
+        X_2d = pca.fit_transform(X)
+
+        df_plot = pd.DataFrame(X_2d, columns=["PC1", "PC2"])
+        df_plot["Membership"] = u[cluster_id]
+
+        fig = px.scatter(
+            df_plot,
+            x="PC1",
+            y="PC2",
+            color="Membership",
+            color_continuous_scale="viridis",
+            title=f"Soft Cluster Visualization (Cluster {cluster_id})"
+        )
+        st.plotly_chart(fig, use_container_width=True)

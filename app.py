@@ -23,7 +23,7 @@ import numpy as np
 
 from nr14_data_analyser.clustering import Clustering
 from nr14_data_analyser.regression import Regression
-from nr14_data_analyser.visualiser import Visualizer
+from nr14_data_analyser.visualiser import Visualizer, ClusteringVisualiser
 from nr14_data_analyser.evaluator import Evaluator
 from nr14_data_analyser.preprocessor import EDA, ETL, Cleaner
 from nr14_data_analyser.fuzzycmeans import FuzzyCMeans
@@ -155,6 +155,9 @@ if uploaded_files:
         # -------------------------
         # Tab 3: Clustering (classic)
         # -------------------------
+  # -------------------------
+# Tab 3: Clustering (classic)
+# -------------------------
         with tab3:
             st.header(f"Clustering ({dataset_name})")
             algo = st.selectbox("Choose clustering algorithm", ["KMeans", "DBSCAN", "Agglomerative"])
@@ -164,7 +167,7 @@ if uploaded_files:
                 st.warning("No numeric columns available for clustering.")
             else:
                 clustering = Clustering(numeric_df)
-                visualiser = Visualizer()
+                cvisualiser = ClusteringVisualiser()
 
                 if algo == "KMeans":
                     n_clusters = st.slider("Number of clusters", 2, 10, 3)
@@ -172,31 +175,28 @@ if uploaded_files:
                     evaluator = Evaluator(df)
                     metrics = evaluator.evaluate_clustering(clustering.data, labels)
                     st.write("### Evaluation Metrics", metrics)
-                    visualiser.plot_clusters(clustering.data, labels, centers=model.cluster_centers_)
-                    visualiser.silhouette_plot(clustering.data, labels)
+                    cvisualiser.plot_clusters(clustering.data, labels, centers=model.cluster_centers_)
+                    cvisualiser.silhouette_plot(clustering.data, labels)
 
                 elif algo == "DBSCAN":
                     eps = st.slider("Epsilon", 0.1, 10.0, 0.5)
                     min_samples = st.slider("Min Samples", 2, 20, 5)
-                    labels, model = clustering.dbscan_clustering(
-                        X=clustering.data, eps=eps, min_samples=min_samples
-                    )
+                    labels, model = clustering.dbscan_clustering(X=clustering.data, eps=eps, min_samples=min_samples)
                     evaluator = Evaluator(df)
                     metrics = evaluator.evaluate_clustering(clustering.data, labels)
                     st.write("### Evaluation Metrics", metrics)
-                    visualiser.plot_clusters(clustering.data, labels)
-                    visualiser.silhouette_plot(clustering.data, labels)
+                    cvisualiser.plot_clusters(clustering.data, labels)
+                    cvisualiser.silhouette_plot(clustering.data, labels)
 
                 elif algo == "Agglomerative":
                     n_clusters = st.slider("Number of clusters", 2, 10, 3)
-                    labels, model = clustering.agglomerative_clustering(
-                        X=clustering.data, n_clusters=n_clusters
-                    )
+                    labels, model = clustering.agglomerative_clustering(X=clustering.data, n_clusters=n_clusters)
                     evaluator = Evaluator(df)
                     metrics = evaluator.evaluate_clustering(clustering.data, labels)
                     st.write("### Evaluation Metrics", metrics)
-                    visualiser.plot_clusters(clustering.data, labels)
-                    visualiser.silhouette_plot(clustering.data, labels)
+                    cvisualiser.plot_clusters(clustering.data, labels)
+                    cvisualiser.silhouette_plot(clustering.data, labels)
+
 
         # -------------------------
         # Tab 4: Fuzzy C-Means
@@ -204,23 +204,19 @@ if uploaded_files:
         with tab4:
             st.header(f"Fuzzy C-Means Clustering ({dataset_name})")
             numeric_df = df.select_dtypes(include=["number"])
+
             if numeric_df.shape[0] == 0 or numeric_df.shape[1] == 0:
                 st.warning("No numeric columns available for Fuzzy C-Means.")
             else:
                 clustering = Clustering(numeric_df)
-                visualiser = Visualizer()
+                cvisualiser = ClusteringVisualiser()
 
                 # Parameters
                 n_clusters = st.slider("Number of clusters (C)", 2, 10, 3, key="fcm_n_clusters")
                 m = st.slider("Fuzziness parameter (m)", 1.5, 3.0, 2.0, 0.1, key="fcm_m")
-                error = st.number_input(
-                    "Error tolerance", min_value=0.0001, value=0.005, step=0.0001, key="fcm_error"
-                )
-                maxiter = st.number_input(
-                    "Max iterations", min_value=100, value=1000, step=100, key="fcm_maxiter"
-                )
+                error = st.number_input("Error tolerance", min_value=0.0001, value=0.005, step=0.0001, key="fcm_error")
+                maxiter = st.number_input("Max iterations", min_value=100, value=1000, step=100, key="fcm_maxiter")
 
-                # ✅ Persistent run button
                 if "fcm_run" not in st.session_state:
                     st.session_state.fcm_run = False
 
@@ -234,7 +230,7 @@ if uploaded_files:
                             n_clusters=n_clusters,
                             m=m,
                             error=error,
-                            maxiter=maxiter,
+                            maxiter=maxiter
                         )
                         fcm.fit()
                         labels = fcm.predict()
@@ -245,21 +241,20 @@ if uploaded_files:
                         st.write("### Evaluation Metrics", metrics)
 
                         # Visualisation
-                        visualiser.plot_clusters(clustering.data, labels, centers=fcm.centers)
-                        visualiser.silhouette_plot(clustering.data, labels)
+                        cvisualiser.plot_clusters(clustering.data, labels, centers=fcm.centers)
+                        cvisualiser.silhouette_plot(clustering.data, labels)
 
                         # Membership Matrix
-                        if st.checkbox("Show membership matrix"):
-                            st.dataframe(
-                                pd.DataFrame(
-                                    fcm.u.T,
-                                    columns=[f"Cluster {i}" for i in range(fcm.u.shape[0])],
-                                )
-                            )
+                        if st.checkbox("Show membership heatmap"):
+                            cvisualiser.plot_membership_heatmap(fcm.u)
+
+                        if st.checkbox("Show soft clusters for one cluster"):
+                            cluster_id = st.slider("Cluster ID", 0, n_clusters - 1, 0)
+                            cvisualiser.plot_soft_clusters(clustering.data, fcm.u, cluster_id)
 
                     except Exception as e:
                         st.error(f"Fuzzy C-Means failed: {e}")
-                        st.session_state.fcm_run = False  # reset on error
+                        st.session_state.fcm_run = False
 
         # -------------------------
         # Tab 5: Regression
