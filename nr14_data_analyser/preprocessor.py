@@ -176,4 +176,14 @@ class EDA:
     def data_types(self) -> pd.Series:
         return self.data.dtypes
     
+    def detect_outliers_iqr(self, col: str) -> pd.DataFrame:
+        """Detect outliers in a specific column using the IQR method."""
+        self._check_column(col)
+        Q1 = self.data[col].quantile(0.25)
+        Q3 = self.data[col].quantile(0.75)
+        IQR = Q3 - Q1
+        mask = (self.data[col] < (Q1 - 1.5 * IQR)) | (self.data[col] > (Q3 + 1.5 * IQR))
+        outliers = self.data[mask]
+        print(f"Detected {len(outliers)} outliers in column '{col}' using IQR method.")
+        return outliers
     
