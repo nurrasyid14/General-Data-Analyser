@@ -31,11 +31,11 @@ from nr14_data_analyser.fuzzycmeans import FuzzyCMeans
 st.set_page_config(page_title="General Data Analyser", layout="wide")
 
 st.title("General Data Analyser")
-st.markdown("Upload one or more datasets and perform **EDA, Clustering, and Regression** with interactive visualizations.")
+st.markdown(
+    "Upload one or more datasets and perform **EDA, Clustering, and Regression** "
+    "with interactive visualizations."
+)
 
-# -------------------------
-# File upload
-# -------------------------
 # -------------------------
 # File upload
 # -------------------------
@@ -64,7 +64,7 @@ if uploaded_files:
     with col2:
         if st.button("Reset"):
             st.session_state.continue_flag = False
-            st.experimental_rerun()
+            st.rerun()
 
     if st.session_state.continue_flag:
         dataset_name = st.selectbox("Choose a dataset", list(datasets.keys()))
@@ -75,20 +75,6 @@ if uploaded_files:
         tab1, tab2, tab3, tab4, tab5 = st.tabs(
             ["Data Preview", "EDA", "Clustering", "Fuzzy C-Means", "Regression"]
         )
-
-        # -------------------------
-        # Tab 1: Data Preview
-        # -------------------------
-        with tab1:
-            st.header(f"Data Preview ({dataset_name})")
-            st.dataframe(df.head())
-            st.write("Shape:", df.shape)
-
-        # ... (rest of your tab code unchanged)
-
-else:
-    st.info("Please upload at least one dataset to continue.")
-
 
         # -------------------------
         # Tab 1: Data Preview
@@ -192,7 +178,9 @@ else:
                 elif algo == "DBSCAN":
                     eps = st.slider("Epsilon", 0.1, 10.0, 0.5)
                     min_samples = st.slider("Min Samples", 2, 20, 5)
-                    labels, model = clustering.dbscan_clustering(X=clustering.data, eps=eps, min_samples=min_samples)
+                    labels, model = clustering.dbscan_clustering(
+                        X=clustering.data, eps=eps, min_samples=min_samples
+                    )
                     evaluator = Evaluator(df)
                     metrics = evaluator.evaluate_clustering(clustering.data, labels)
                     st.write("### Evaluation Metrics", metrics)
@@ -201,7 +189,9 @@ else:
 
                 elif algo == "Agglomerative":
                     n_clusters = st.slider("Number of clusters", 2, 10, 3)
-                    labels, model = clustering.agglomerative_clustering(X=clustering.data, n_clusters=n_clusters)
+                    labels, model = clustering.agglomerative_clustering(
+                        X=clustering.data, n_clusters=n_clusters
+                    )
                     evaluator = Evaluator(df)
                     metrics = evaluator.evaluate_clustering(clustering.data, labels)
                     st.write("### Evaluation Metrics", metrics)
@@ -209,7 +199,8 @@ else:
                     visualiser.silhouette_plot(clustering.data, labels)
 
         # -------------------------
-        # --- Tab 4: Fuzzy C-Means ---
+        # Tab 4: Fuzzy C-Means
+        # -------------------------
         with tab4:
             st.header(f"Fuzzy C-Means Clustering ({dataset_name})")
             numeric_df = df.select_dtypes(include=["number"])
@@ -222,8 +213,12 @@ else:
                 # Parameters
                 n_clusters = st.slider("Number of clusters (C)", 2, 10, 3, key="fcm_n_clusters")
                 m = st.slider("Fuzziness parameter (m)", 1.5, 3.0, 2.0, 0.1, key="fcm_m")
-                error = st.number_input("Error tolerance", min_value=0.0001, value=0.005, step=0.0001, key="fcm_error")
-                maxiter = st.number_input("Max iterations", min_value=100, value=1000, step=100, key="fcm_maxiter")
+                error = st.number_input(
+                    "Error tolerance", min_value=0.0001, value=0.005, step=0.0001, key="fcm_error"
+                )
+                maxiter = st.number_input(
+                    "Max iterations", min_value=100, value=1000, step=100, key="fcm_maxiter"
+                )
 
                 # ✅ Persistent run button
                 if "fcm_run" not in st.session_state:
@@ -239,7 +234,7 @@ else:
                             n_clusters=n_clusters,
                             m=m,
                             error=error,
-                            maxiter=maxiter
+                            maxiter=maxiter,
                         )
                         fcm.fit()
                         labels = fcm.predict()
@@ -258,7 +253,7 @@ else:
                             st.dataframe(
                                 pd.DataFrame(
                                     fcm.u.T,
-                                    columns=[f"Cluster {i}" for i in range(fcm.u.shape[0])]
+                                    columns=[f"Cluster {i}" for i in range(fcm.u.shape[0])],
                                 )
                             )
 
@@ -266,13 +261,11 @@ else:
                         st.error(f"Fuzzy C-Means failed: {e}")
                         st.session_state.fcm_run = False  # reset on error
 
-
         # -------------------------
         # Tab 5: Regression
         # -------------------------
         with tab5:
             st.header(f"Regression ({dataset_name})")
-            # Choose target (streamlit selectbox)
             target = st.selectbox("Select target column", df.columns, index=0)
             feature_options = [c for c in df.columns if c != target]
             features = st.multiselect("Select feature columns", feature_options)
@@ -283,7 +276,10 @@ else:
                 regression = Regression()
                 visualiser = Visualizer()
 
-                algo = st.selectbox("Choose regression algorithm", ["Linear", "Polynomial", "Ridge", "Lasso", "Logistic"])
+                algo = st.selectbox(
+                    "Choose regression algorithm",
+                    ["Linear", "Polynomial", "Ridge", "Lasso", "Logistic"],
+                )
 
                 try:
                     if algo == "Linear":
