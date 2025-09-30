@@ -263,20 +263,22 @@ class ClusteringVisualiser:
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # -----------------------
-    # Fuzzy C-Means extras
-    # -----------------------
+        # Fuzzy C-Means extras
     @staticmethod
     def plot_membership_heatmap(u: np.ndarray):
         """
-        Heatmap of membership matrix (clusters × samples).
+        Heatmap of membership matrix (clusters × samples) using Plotly.
         """
-        fig, ax = plt.subplots(figsize=(10, 6))
-        sns.heatmap(u, cmap="viridis", cbar=True, ax=ax)
-        ax.set_title("Fuzzy Membership Matrix")
-        ax.set_xlabel("Samples")
-        ax.set_ylabel("Clusters")
-        st.pyplot(fig)
+        # u is shape (n_clusters, n_samples) → transpose so samples on x-axis
+        fig = px.imshow(
+            u,
+            aspect="auto",
+            color_continuous_scale="viridis",
+            title="Fuzzy Membership Matrix",
+        )
+        fig.update_xaxes(title="Samples")
+        fig.update_yaxes(title="Clusters")
+        st.plotly_chart(fig, use_container_width=True)
 
     @staticmethod
     def plot_soft_clusters(X, u, cluster_id=0):
@@ -298,9 +300,12 @@ class ClusteringVisualiser:
             y="PC2",
             color="Membership",
             color_continuous_scale="viridis",
-            title=f"Soft Cluster Visualization (Cluster {cluster_id})"
+            title=f"Soft Cluster Visualization (Cluster {cluster_id})",
+            opacity=0.8
         )
+        fig.update_traces(marker=dict(size=8, line=dict(width=0)))
         st.plotly_chart(fig, use_container_width=True)
+
 
 
 __all__ = ["Visualizer", "ClusteringVisualiser"]
