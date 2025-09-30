@@ -286,17 +286,31 @@ class ClusteringVisualiser:
             df_plot = X.copy()
             df_plot.columns = ["X1", "X2"]
 
-        df_plot["Cluster"] = labels
+        df_plot["Cluster"] = labels.astype(str)  # make categorical for clean legend
 
+        # Plot with only color (avoid duplicate legend)
         fig = px.scatter(
             df_plot,
             x=df_plot.columns[0],
             y=df_plot.columns[1],
             color="Cluster",
-            symbol="Cluster",
             title="Fuzzy C-Means Clusters (Hard Labels)",
         )
+
+        # Improve legend placement
+        fig.update_layout(
+            legend=dict(
+                title="Cluster",
+                orientation="h",      # horizontal
+                yanchor="bottom",
+                y=1.02,               # above chart
+                xanchor="center",
+                x=0.5
+            )
+        )
+
         st.plotly_chart(fig, use_container_width=True)
+
 
 
     @staticmethod
