@@ -301,3 +301,6 @@ class ClusteringVisualiser:
             title=f"Soft Cluster Visualization (Cluster {cluster_id})"
         )
         st.plotly_chart(fig, use_container_width=True)
+
+
+__all__ = ["Visualizer", "ClusteringVisualiser"]
