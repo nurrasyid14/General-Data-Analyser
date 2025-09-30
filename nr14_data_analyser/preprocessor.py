@@ -172,3 +172,8 @@ class EDA:
         else:
             raise ValueError("Invalid plot kind.")
         plt.show()
+
+    def data_types(self) -> pd.Series:
+        return self.data.dtypes
+    
+    
