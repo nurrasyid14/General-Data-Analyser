@@ -40,7 +40,7 @@ st.markdown(
 # File upload
 # -------------------------
 uploaded_files = st.file_uploader(
-    "Upload CSV files", type="csv", accept_multiple_files=True
+    "Upload CSV files", type=("csv","xls","xlsx","tsv","tsv.gz"), accept_multiple_files=True
 )
 
 datasets = {}
